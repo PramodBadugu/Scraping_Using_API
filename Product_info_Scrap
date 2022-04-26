@@ -1,0 +1,67 @@
+from numpy import product
+import requests
+import json, random, time
+import re
+import html
+from lxml import html
+class product:
+
+    def __init__(self, crawl_options):
+        self.product_type = 'retail_product'
+        self.crawl_options = crawl_options
+        self.count = 0
+        self.append = '?page='
+        self.headers = {
+        'authority': 'es-api.drankdozijn.nl',
+        'accept': '*/*',
+        'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8',
+        'origin': 'https://drankdozijn.de',
+        'referer': 'https://drankdozijn.de/',
+        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="100", "Google Chrome";v="100"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'cross-site',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
+        }
+    def url_bridge(self, url):
+        params = {
+            'country': 'DE',
+            'language': 'de',
+            'page_template': 'artikel',
+            'alias': 'fles-loie-du-perigord-merlot-75cl',
+            'cacheKey': '1',
+            'premiumMember': 'N',
+        }
+        group = url.split('?')[0].split('/')[-2]
+        category = url.split('?')[0].split('/')[-1]
+        page_no = url.split('?page=')[-1].split('&')[0] if '?page' in url else '1'
+        Api_url='https://es-api.drankdozijn.nl/product?country=DE&language=de&page_template=artikel&alias='+category
+        print("API URL ",Api_url)
+        resp = requests.get(Api_url, headers = self.headers)
+        return resp
+
+    def bridge_extraction(self, resp, all_extraction):
+        try:
+            all_data = []
+            x = json.loads(resp.text)
+            # print(resp.text)
+            dic={
+            'name':x['alias'],
+            'description':x['meta_description'],
+            'price':x['price'],
+            'reviewCount':x['reviewCount'],
+            'sku_size':x['packagingDescription'],
+            'image':"https://res.cloudinary.com/boozeboodcdn/image/upload/"+x['images'][0]
+            }
+            all_data.append(dic)
+            return all_data
+        except Exception as e:
+            print(e)
+            return [{}]
+l = product({})
+resp = l.url_bridge("https://drankdozijn.de/artikel/fles-seedlip-garden-108-non-alcoholic-spirit-70cl")
+print("Status code",resp.status_code)
+data = l.bridge_extraction(resp, [])
+print(json.dumps(data))
