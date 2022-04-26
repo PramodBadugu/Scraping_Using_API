@@ -1,0 +1,50 @@
+from lxml import html
+import requests
+import json
+import random
+import time
+import re
+class listing:
+    def __init__(self, crawl_options):
+        self.crawl_options = crawl_options
+        self.count = 0
+        self.append = '?page='
+    def url_bridge(self, url):
+        headers = {
+            'authority': 'www.drankdozijn.de',
+            'cache-control': 'max-age=0',
+            'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="98", "Google Chrome";v="98"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"macOS"',
+            'upgrade-insecure-requests': '0',
+            'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36',
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+            'sec-fetch-site': 'none',
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-user': '?1',
+            'sec-fetch-dest': 'document',
+            'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8',
+            'if-none-match': 'W/"7454d-v6isQ3Rr5bc+GUER57wHmtH2f2g"',
+        }
+        time.sleep(random.choice([2, 1]))
+        resp = requests.get(url, headers=headers)
+        return resp
+    def bridge_extraction(self, resp, all_extraction):
+        response = html.fromstring(resp.content)
+        all_data=[]
+        try:
+            data = response.xpath('//div[@class="product_info"]//a/@href')
+            if data:
+                for i in list(set(data)):
+                    dit = {
+                        'url': i
+                    }
+                    all_data.append(dit)
+            return all_data
+        except Exception as e:
+            return [{}]
+l = listing({})
+resp = l.url_bridge("https://drankdozijn.de/groep/wijn/rood")
+print(resp.status_code)
+data = l.bridge_extraction(resp, [])
+print(json.dumps(data))
